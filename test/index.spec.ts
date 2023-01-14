@@ -50,7 +50,7 @@ describe("KeyValueStore", () => {
       tempStore.write("/page", file),
     ]);
     const [paths, allKeys] = await Promise.all([
-      tempStore.ls("/"),
+      tempStore.ls("/*"),
       AsyncStorage.getAllKeys(),
     ]);
 
@@ -98,7 +98,7 @@ describe("KeyValueStore", () => {
     ]);
     await store.rm("/base/home");
 
-    const files = await store.readMulti<typeof file>("/base");
+    const files = await store.readMulti<typeof file>("/base*");
     expect(files).toHaveLength(1);
     expect(files[0].path).toEqual("/base/page");
     expect(files[0].value).toEqual(file);
@@ -200,4 +200,15 @@ describe("KeyValueStore", () => {
 
     expect(survivors).toEqual(expect.arrayContaining(["/ball", "/baller"]));
   });
+});
+
+it("should handle escaping asterisks", async () => {
+  await Promise.all([
+    store.write("/base**ll", file),
+    store.write("/ba*ketball", file),
+    store.write("/basketweaving", file),
+  ]);
+  const paths = await store.ls("/*ba*\\**ll");
+
+  expect(paths).toEqual(expect.arrayContaining(["/base**ll", "/ba*ketball"]));
 });
