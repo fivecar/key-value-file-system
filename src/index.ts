@@ -95,9 +95,12 @@ export default class KeyValueFileSystem {
     return await this.store.multiSet(keyValues);
   }
 
-  async rm(path: string): Promise<void> {
-    this.validatePath(path);
-    return await this.store.removeItem(this.prefix + path);
+  async rm(spec: string): Promise<void> {
+    this.validatePath(spec);
+    const keys = await this.store.getAllKeys();
+    const regex = this.regexFromSpec(spec);
+
+    return await this.store.multiRemove(keys.filter(key => regex.test(key)));
   }
 
   async rmAllForce(): Promise<void> {

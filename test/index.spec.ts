@@ -13,8 +13,12 @@ describe("KeyValueStore", () => {
     expect(() => new KeyValueFileSystem(AsyncStorage, "")).toThrow();
   });
 
-  it("should refuse empty paths", async () => {
-    await expect(store.ls("")).rejects.toThrow();
+  it("should support empty paths for ls", async () => {
+    await expect(store.ls()).resolves.not.toThrow();
+    await expect(store.ls("")).resolves.not.toThrow();
+  });
+
+  it("should refuse empty paths for everything except ls", async () => {
     await expect(store.read("")).rejects.toThrow();
     await expect(store.write("", file)).rejects.toThrow();
     await expect(store.rm("")).rejects.toThrow();
@@ -129,7 +133,7 @@ describe("KeyValueStore", () => {
     expect(paths).toEqual(moreSamePaths);
   });
 
-  it("should handle tail wildcards", async () => {
+  it("should handle finding tail wildcards", async () => {
     const otherKeys = ["foo", "bar", "baz"];
 
     await Promise.all([
@@ -144,7 +148,7 @@ describe("KeyValueStore", () => {
     expect(paths).toEqual(expect.arrayContaining(["/foo12", "/foo24"]));
   });
 
-  it("should handle mid wildcards", async () => {
+  it("should handle finding mid wildcards", async () => {
     const otherKeys = ["foo", "bar", "baz"];
 
     await Promise.all([
@@ -162,7 +166,7 @@ describe("KeyValueStore", () => {
     );
   });
 
-  it("should handle mid-and-tail wildcards", async () => {
+  it("should handle finding mid-and-tail wildcards", async () => {
     const otherKeys = ["foo", "bar", "baz"];
 
     await Promise.all([
@@ -178,5 +182,22 @@ describe("KeyValueStore", () => {
     expect(paths).toEqual(
       expect.arrayContaining(["/baseball", "/basketball", "/ball", "/baller"])
     );
+  });
+
+  it("should handle deleting with wildcards", async () => {
+    const otherKeys = ["foo", "bar", "baz"];
+
+    await Promise.all([
+      ...otherKeys.map(key => AsyncStorage.setItem(key, "secretstuff")),
+      store.write("/baseball", file),
+      store.write("/basketball", file),
+      store.write("/ball", file),
+      store.write("/baller", file),
+      store.write("/maximumbasketweaving", file),
+    ]);
+    await store.rm("/*b*s*e*");
+    const survivors = await store.ls();
+
+    expect(survivors).toEqual(expect.arrayContaining(["/ball", "/baller"]));
   });
 });

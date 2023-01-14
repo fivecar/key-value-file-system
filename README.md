@@ -1,59 +1,4 @@
-# typescript-npm-package-template
-
-> Template to kickstart creating a Node.js module using TypeScript and VSCode
-
-Inspired by [node-module-boilerplate](https://github.com/sindresorhus/node-module-boilerplate)
-
-## Features
-
-- [Semantic Release](https://github.com/semantic-release/semantic-release)
-- [Issue Templates](https://github.com/ryansonshine/typescript-npm-package-template/tree/main/.github/ISSUE_TEMPLATE)
-- [GitHub Actions](https://github.com/ryansonshine/typescript-npm-package-template/tree/main/.github/workflows)
-- [Codecov](https://about.codecov.io/)
-- [VSCode Launch Configurations](https://github.com/ryansonshine/typescript-npm-package-template/blob/main/.vscode/launch.json)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Husky](https://github.com/typicode/husky)
-- [Lint Staged](https://github.com/okonet/lint-staged)
-- [Commitizen](https://github.com/search?q=commitizen)
-- [Jest](https://jestjs.io/)
-- [ESLint](https://eslint.org/)
-- [Prettier](https://prettier.io/)
-
-## Getting started
-
-### Set up your repository
-
-**Click the "Use this template" button.**
-
-Alternatively, create a new directory and then run:
-
-```bash
-curl -fsSL https://github.com/ryansonshine/typescript-npm-package-template/archive/main.tar.gz | tar -xz --strip-components=1
-```
-
-Replace `FULL_NAME`, `GITHUB_USER`, and `REPO_NAME` in the script below with your own details to personalize your new package:
-
-```bash
-FULL_NAME="John Smith"
-GITHUB_USER="johnsmith"
-REPO_NAME="my-cool-package"
-sed -i.mybak "s/\([\/\"]\)(ryansonshine)/$GITHUB_USER/g; s/typescript-npm-package-template\|my-package-name/$REPO_NAME/g; s/Philip Su/$FULL_NAME/g" package.json package-lock.json README.md
-rm *.mybak
-```
-
-### Add NPM Token
-
-Add your npm token to your GitHub repository secrets as `NPM_TOKEN`.
-
-### Add Codecov integration
-
-Enable the Codecov GitHub App [here](https://github.com/apps/codecov).
-
-**Remove everything from here and above**
-
----
-
-# my-package-name
+# key-value-file-system
 
 [![npm package][npm-img]][npm-url]
 [![Build Status][build-img]][build-url]
@@ -63,54 +8,111 @@ Enable the Codecov GitHub App [here](https://github.com/apps/codecov).
 [![Commitizen Friendly][commitizen-img]][commitizen-url]
 [![Semantic Release][semantic-release-img]][semantic-release-url]
 
-> My awesome module
+KVFS (key-value-file-system) mimics a basic "file system" of Javascript objects on top of a key value store (e.g. `AsyncStorage`). You end up doing things like:
+
+```Typescript
+await store.write("/home/stuff", { rock: "me", amadeus: true});
+
+const filenames = await store.ls("/ho*/*tu*");
+filenames.forEach(async name => {
+  const obj = await store.read(name);
+  console.log("Who to rock?", obj.rock, "And is it Mozart?", obj.amadeus);
+});
+```
+
+Here are the benefits over using the key-value store directly:
+* Direct object support. KVFS reads and writes objects instead of strings. No more `JSON.stringify` and `JSON.parse` all over the place.
+* "Hierarchy" support. KVFS defaults to supporting filepaths and the concept of path hierarchies.
+* Wildcard support. KVFS has commands like `ls`, 
 
 ## Install
 
 ```bash
-npm install my-package-name
+npm install key-value-file-system
 ```
-
-## Usage
-
-```ts
-import { myPackage } from 'my-package-name';
-
-myPackage('hello');
-//=> 'hello from my package'
+or
+```bash
+yarn add key-value-file-system
 ```
 
 ## API
 
-### myPackage(input, options?)
+First create a key value file system, passing it a key/value read/write store:
 
-#### input
+```Typescript
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import KVFS from "key-value-file-system";
 
-Type: `string`
+const store = new KVFS(AsyncStorage);
+```
 
-Lorem ipsum.
+By default, KVFS prepends all your filenames with `"/kvfs"`, so that you can use the same storage for other things unrelated to KVFS. If you want to use a different prefix for all KVFS keys, you can create it this way:
 
-#### options
+```Typescript
+const store = new KVFS(AsyncStorage, "/ILikeThisPrefixBetter");
+```
 
-Type: `object`
+KVFS supports `AsyncStorage` APIs out of the box. But if you're using another type of key-value store, it just needs to conform to this spec:
 
-##### postfix
+```Typescript
+export interface KeyValueStore {
+  getAllKeys(): Promise<readonly string[]>;
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
+  multiGet(
+    keys: readonly string[]
+  ): Promise<readonly [string, string | null][]>;
+  multiSet(keyValuePairs: Array<[string, string]>): Promise<void>;
+  multiRemove(keys: readonly string[]): Promise<void>;
+}
+```
 
-Type: `string`
-Default: `rainbows`
+### async ls(spec?: string): Promise<readonly string[]>
+Lists all filenames if you pass `undefined`, `""`, or `"*"`. Supports wildcards in multiple places (e.g. `ls("/stats/*bowl*/*ing")`).
 
-Lorem ipsum.
+### async read<T>(path: string): Promise<T | null>
 
-[build-img]:https://github.com/ryansonshine/typescript-npm-package-template/actions/workflows/release.yml/badge.svg
-[build-url]:https://github.com/ryansonshine/typescript-npm-package-template/actions/workflows/release.yml
-[downloads-img]:https://img.shields.io/npm/dt/typescript-npm-package-template
-[downloads-url]:https://www.npmtrends.com/typescript-npm-package-template
-[npm-img]:https://img.shields.io/npm/v/typescript-npm-package-template
-[npm-url]:https://www.npmjs.com/package/typescript-npm-package-template
-[issues-img]:https://img.shields.io/github/issues/ryansonshine/typescript-npm-package-template
-[issues-url]:https://github.com/ryansonshine/typescript-npm-package-template/issues
-[codecov-img]:https://codecov.io/gh/ryansonshine/typescript-npm-package-template/branch/main/graph/badge.svg
-[codecov-url]:https://codecov.io/gh/ryansonshine/typescript-npm-package-template
+Gives you back the object stored at `path`, or `null` if path doesn't exist.
+
+### async readMulti<T>(spec: string): Promise<readonly PathValue<T | null>[]>
+
+Takes a wildcarded string and gives you back all objects that match.
+
+```Typescript
+/* key-value-file-system defines the following:
+export interface PathValue<T> {
+  path: string;
+  value: T;
+}
+*/
+const stuff = await store.readMulti("*69");
+stuff.forEach(item => console.log(`At path ${item.path} I found ${path.value}`));
+```
+
+### async write<T>(path: string, value: T): Promise<void>
+
+Does what it says on the tin.
+
+### async rm(spec: string): Promise<void>
+
+Takes a wildcard-capable path spec and deletes all objects that match. Note that unlike `ls`, `rm` won't let you just pass nothing. In order to delete everything, you'll either need to `rm("*")` so KVFS knows you're serious, or you can call the next thing.
+
+### rmAllForce(): Promise<void>
+
+The `rm -fr` of KVFS. Removes all KVFS objects. Note that this does NOT delete other keys of yours in the same store — KVFS never messes with keys written by other parts of your app. 
+
+
+[build-img]:https://github.com/fivecar/key-value-file-system/actions/workflows/release.yml/badge.svg
+[build-url]:https://github.com/fivecar/key-value-file-system/actions/workflows/release.yml
+[downloads-img]:https://img.shields.io/npm/dt/key-value-file-system
+[downloads-url]:https://www.npmtrends.com/key-value-file-system
+[npm-img]:https://img.shields.io/npm/v/key-value-file-system
+[npm-url]:https://www.npmjs.com/package/key-value-file-system
+[issues-img]:https://img.shields.io/github/issues/fivecar/key-value-file-system
+[issues-url]:https://github.com/fivecar/key-value-file-system/issues
+[codecov-img]:https://codecov.io/gh/fivecar/key-value-file-system/branch/main/graph/badge.svg
+[codecov-url]:https://codecov.io/gh/fivecar/key-value-file-system
 [semantic-release-img]:https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
 [semantic-release-url]:https://github.com/semantic-release/semantic-release
 [commitizen-img]:https://img.shields.io/badge/commitizen-friendly-brightgreen.svg
