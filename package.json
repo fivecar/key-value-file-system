@@ -1,7 +1,7 @@
 {
-  "name": "typescript-npm-package-template",
-  "version": "0.0.0-development",
-  "description": "A template for creating npm packages using TypeScript and VSCode",
+  "name": "key-value-file-system",
+  "version": "1.0.0",
+  "description": "Turn any key-value store into a file system for hierarchical object storage",
   "main": "./lib/index.js",
   "files": [
     "lib/**/*"
@@ -19,33 +19,30 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ryansonshine/typescript-npm-package-template.git"
+    "url": "git+https://github.com/fivecar/key-value-file-system.git"
   },
   "license": "MIT",
   "author": {
-    "name": "Ryan Sonshine",
-    "email": "ryansonshine@users.noreply.github.com",
-    "url": "https://github.com/ryansonshine"
+    "name": "Philip Su",
+    "email": "fivecar@users.noreply.github.com",
+    "url": "https://github.com/fivecar"
   },
   "engines": {
     "node": ">=12.0"
   },
   "keywords": [
-    "boilerplate",
-    "template",
-    "typescript",
-    "vscode",
-    "jest",
-    "husky",
-    "commitizen",
-    "semantic-release",
-    "codecov"
+    "key-value",
+    "file-system",
+    "hierarchical",
+    "hierarchy",
+    "async-storage"
   ],
   "bugs": {
-    "url": "https://github.com/ryansonshine/typescript-npm-package-template/issues"
+    "url": "https://github.com/fivecar/key-value-file-system/issues"
   },
-  "homepage": "https://github.com/ryansonshine/typescript-npm-package-template#readme",
+  "homepage": "https://github.com/fivecar/key-value-file-system#readme",
   "devDependencies": {
+    "@react-native-async-storage/async-storage": "^1.17.11",
     "@ryansonshine/commitizen": "^4.2.8",
     "@ryansonshine/cz-conventional-changelog": "^3.3.4",
     "@types/jest": "^27.5.2",
@@ -72,7 +69,7 @@
     }
   },
   "lint-staged": {
-    "*.ts": "eslint --cache --cache-location .eslintcache --fix"
+    "*.ts*": "eslint --cache --cache-location .eslintcache --fix"
   },
   "release": {
     "branches": [
