@@ -23,7 +23,7 @@ filenames.forEach(async name => {
 Here are the benefits over using the key-value store directly:
 * Direct object support. KVFS reads and writes objects instead of strings. No more `JSON.stringify` and `JSON.parse` all over the place.
 * "Hierarchy" support. KVFS defaults to supporting filepaths and the concept of path hierarchies.
-* Wildcard support. KVFS has commands like `ls`, 
+* Wildcard support. KVFS has commands like `ls` and `rm` that support wildcards (e.g. `ls(/base*ll/dia*n*`).
 
 ## Install
 
