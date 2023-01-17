@@ -103,6 +103,19 @@ export default class KeyValueFileSystem {
     return await this.store.multiRemove(keys.filter(key => regex.test(key)));
   }
 
+  async rmMulti(paths: string[]): Promise<void> {
+    if (paths.length === 0) {
+      return;
+    }
+
+    const keys = paths.map(path => {
+      this.validatePath(path);
+      return this.prefix + path;
+    });
+
+    return await this.store.multiRemove(keys);
+  }
+
   async rmAllForce(): Promise<void> {
     const keys = await this.store.getAllKeys();
     const ourKeys = keys.filter(key => key.startsWith(this.prefix));

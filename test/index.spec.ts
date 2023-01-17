@@ -200,15 +200,54 @@ describe("KeyValueStore", () => {
 
     expect(survivors).toEqual(expect.arrayContaining(["/ball", "/baller"]));
   });
+
+  it("should handle escaping asterisks", async () => {
+    await Promise.all([
+      store.write("/base**ll", file),
+      store.write("/ba*ketball", file),
+      store.write("/basketweaving", file),
+    ]);
+    const paths = await store.ls("/*ba*\\**ll");
+
+    expect(paths).toEqual(expect.arrayContaining(["/base**ll", "/ba*ketball"]));
+  });
+
+  it("should handle deleting multiple explicit paths", async () => {
+    const otherKeys = ["foo", "bar", "baz"];
+
+    await Promise.all([
+      ...otherKeys.map(key => AsyncStorage.setItem(key, "secretstuff")),
+      store.write("/baseball", file),
+      store.write("/basketball", file),
+      store.write("/ball", file),
+      store.write("/baller", file),
+      store.write("/maximumbasketweaving", file),
+    ]);
+    await store.rmMulti(["/basketball", "/baller"]);
+
+    const allKeys = await AsyncStorage.getAllKeys();
+    expect(allKeys).toEqual(
+      expect.arrayContaining([
+        ...otherKeys,
+        "/kvfs/baseball",
+        "/kvfs/ball",
+        "/kvfs/maximumbasketweaving",
+      ])
+    );
+  });
+
+  it("should handle deleting an empty set of paths", async () => {
+    await Promise.all([
+      store.write("/ball", file),
+      store.write("/baller", file),
+      store.write("/maximumbasketweaving", file),
+    ]);
+    await store.rmMulti([]);
+    const survivors = await store.ls();
+
+    expect(survivors).toEqual(
+      expect.arrayContaining(["/ball", "/baller", "/maximumbasketweaving"])
+    );
+  });
 });
 
-it("should handle escaping asterisks", async () => {
-  await Promise.all([
-    store.write("/base**ll", file),
-    store.write("/ba*ketball", file),
-    store.write("/basketweaving", file),
-  ]);
-  const paths = await store.ls("/*ba*\\**ll");
-
-  expect(paths).toEqual(expect.arrayContaining(["/base**ll", "/ba*ketball"]));
-});
