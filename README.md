@@ -68,14 +68,14 @@ export interface KeyValueStore {
 }
 ```
 
-### async ls(spec?: string): Promise<readonly string[]>
+### `async ls(spec?: string): Promise<readonly string[]>`
 Lists all filenames if you pass `undefined`, `""`, or `"*"`. Supports wildcards in multiple places (e.g. `ls("/stats/*bowl*/*ing")`).
 
-### async read<T>(path: string): Promise<T | null>
+### `async read<T>(path: string): Promise<T | null>`
 
 Gives you back the object stored at `path`, or `null` if path doesn't exist.
 
-### async readMulti<T>(spec: string): Promise<readonly PathValue<T | null>[]>
+### `async readMulti<T>(spec: string): Promise<readonly PathValue<T | null>[]>`
 
 Takes a wildcarded string and gives you back all objects that match.
 
@@ -90,15 +90,19 @@ const stuff = await store.readMulti("*69");
 stuff.forEach(item => console.log(`At path ${item.path} I found ${path.value}`));
 ```
 
-### async write<T>(path: string, value: T): Promise<void>
+### `async write<T>(path: string, value: T): Promise<void>`
 
 Does what it says on the tin.
 
-### async rm(spec: string): Promise<void>
+### `async rm(spec: string): Promise<void>`
 
-Takes a wildcard-capable path spec and deletes all objects that match. Note that unlike `ls`, `rm` won't let you just pass nothing. In order to delete everything, you'll either need to `rm("*")` so KVFS knows you're serious, or you can call the next thing.
+Takes a wildcard-capable path spec and deletes all objects that match. Note that unlike `ls`, `rm` won't let you just pass nothing. In order to delete everything, you'll either need to `rm("*")` so KVFS knows you're serious, or you can call `rmAllForce`.
 
-### rmAllForce(): Promise<void>
+### `async rmMulti(paths: string[]): Promise<void>`
+
+For those times when one regex won't do for all the files you want to remove.
+
+### `rmAllForce(): Promise<void>`
 
 The `rm -fr` of KVFS. Removes all KVFS objects. Note that this does NOT delete other keys of yours in the same store — KVFS never messes with keys written by other parts of your app. 
 
